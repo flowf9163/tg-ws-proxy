@@ -1,3 +1,17 @@
+
+# V24
+## ChangeLOG
+
+Вернул нормальную работу на мобильном инете
+
+Медиа были пофикшены (******* буду, у меня работало)
+
+Ну и приложение фирменное сделано [Download](https://github.com/f1ndles/tg-ws-proxy/releases/download/24/tg_ws_proxy_magisk_v23B.zip)
+
+Вроде все
+
+
+
 # Changelog
 
 ## v23 (2026-08-11)

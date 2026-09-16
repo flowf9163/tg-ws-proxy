@@ -59,7 +59,8 @@ class ProxyService : Service() {
                     ProxyBridge.setRunning(true)
                     goForeground(getString(R.string.status_running))
                 } else {
-                    startProxy(intent.getStringExtra(EXTRA_ARGS) ?: DEFAULT_ARGS)
+                    val args = intent.getStringExtra(EXTRA_ARGS) ?: ProxySettingsRepository.getSavedArgs(this)
+                    startProxy(args)
                 }
             }
             ACTION_STOP -> stopProxy()
@@ -68,12 +69,8 @@ class ProxyService : Service() {
                     ProxyBridge.setRunning(true)
                     goForeground(getString(R.string.status_running))
                 } else {
-                    val args = prefs().getString(PREF_ARGS, null)
-                    if (args != null) {
-                        startProxy(args)
-                    } else {
-                        stopSelf()
-                    }
+                    val args = prefs().getString(PREF_ARGS, null) ?: ProxySettingsRepository.getSavedArgs(this)
+                    startProxy(args)
                 }
             }
         }

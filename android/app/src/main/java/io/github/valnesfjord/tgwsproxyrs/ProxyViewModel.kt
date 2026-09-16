@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import androidx.compose.runtime.mutableStateListOf
-import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,31 +13,24 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ProxyViewModel(application: Application) : AndroidViewModel(application) {
-    private val prefs = application.getSharedPreferences(ProxyService.PREFS, 0)
-
-    private val _args = MutableStateFlow(
-        prefs.getString(ProxyService.PREF_ARGS, null) ?: ProxyService.DEFAULT_ARGS,
-    )
-    val args: StateFlow<String> = _args.asStateFlow()
+    private val repository = ProxySettingsRepository(application)
+    val config: StateFlow<ProxyConfigData> = repository.config
 
     val running = ProxyBridge.running
     val tgLink = ProxyBridge.tgLink
     val error = ProxyBridge.error
 
-    /**
-     * Bounded log buffer the UI observes directly.  A `StateFlow<List<String>>`
-     * copied the whole list to append and copied it again to trim, i.e. up to
-     * a thousand element copies per line on a chatty proxy; a snapshot list
-     * shares its backing structure between versions and lets Compose observe
-     * the single append, so only the rows on screen recompose.
-     */
     private val _logs = mutableStateListOf<LogLine>()
     val logs: List<LogLine> = _logs
 
-    /** Never reused, never reordered — see [LogLine]. */
     private var nextLogId = 0L
-
     private var autoOpenPending = false
+
+    private val _showLogsSheet = MutableStateFlow(false)
+    val showLogsSheet: StateFlow<Boolean> = _showLogsSheet.asStateFlow()
+
+    private val _showDomainDialog = MutableStateFlow(false)
+    val showDomainDialog: StateFlow<Boolean> = _showDomainDialog.asStateFlow()
 
     init {
         ProxyBridge.syncFromNative()
@@ -60,15 +52,19 @@ class ProxyViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun updateArgs(value: String) {
-        _args.value = value
-        prefs.edit { putString(ProxyService.PREF_ARGS, value) }
+    fun toggleRunning() {
+        if (running.value) {
+            stop()
+        } else {
+            start()
+        }
     }
 
     fun start() {
         ProxyBridge.clearError()
-        autoOpenPending = true
-        ProxyService.start(getApplication(), _args.value)
+        autoOpenPending = false
+        val args = config.value.buildCliArgs()
+        ProxyService.start(getApplication(), args)
     }
 
     fun stop() {
@@ -76,7 +72,7 @@ class ProxyViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun openLink() {
-        val link = tgLink.value ?: return
+        val link = tgLink.value ?: config.value.expectedTgLink
         val intent = Intent(Intent.ACTION_VIEW, link.toUri()).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
@@ -85,6 +81,26 @@ class ProxyViewModel(application: Application) : AndroidViewModel(application) {
         } catch (_: ActivityNotFoundException) {
             ProxyBridge.reportMessage(getApplication<Application>().getString(R.string.telegram_missing))
         }
+    }
+
+    fun updateAutostart(enabled: Boolean) = repository.updateAutostart(enabled)
+    fun updateCfPriority(enabled: Boolean) = repository.updateCfPriority(enabled)
+    fun updateCfBalance(enabled: Boolean) = repository.updateCfBalance(enabled)
+    fun updateDefaultDomains(enabled: Boolean) = repository.updateDefaultDomains(enabled)
+    fun updateCustomDomain(domain: String) = repository.updateCustomDomain(domain)
+    fun updatePort(port: Int) = repository.updatePort(port)
+    fun updateQuiet(quiet: Boolean) = repository.updateQuiet(quiet)
+
+    fun setShowLogsSheet(show: Boolean) {
+        _showLogsSheet.value = show
+    }
+
+    fun setShowDomainDialog(show: Boolean) {
+        _showDomainDialog.value = show
+    }
+
+    fun clearLogs() {
+        _logs.clear()
     }
 
     fun openRepo() {

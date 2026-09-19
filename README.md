@@ -30,6 +30,7 @@ Telegram → локальный MTProto (127.0.0.1:1443) → tg-ws-proxy → WSS
 - [valnesfjord/tg-ws-proxy-rs](https://github.com/valnesfjord/tg-ws-proxy-rs) — Rust движок
 - Александр К - многочисленная поддержка проектов
 - АВТОР - многочисленная поддержка проектов
+- Claude
 # Поддержка
 
 

@@ -1,10 +1,15 @@
 name: Build Android APK
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
   push:
     branches:
       - '**'
+    tags:
+      - 'v*'
 
 jobs:
   build-apk:
@@ -54,3 +59,11 @@ jobs:
         with:
           name: tg-ws-proxy-release-apks
           path: android/app/build/outputs/apk/release/*.apk
+
+      - name: Attach APKs to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.ref_name }}" android/app/build/outputs/apk/release/*.apk --clobber || true
+

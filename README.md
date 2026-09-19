@@ -1,4 +1,4 @@
-# TG WS Proxy — Magisk модуль
+# TG WS Proxy - общайся без ограничений в любимом самолетике
 
 Magisk модуль для ускорения работы Telegram через WebSocket + Cloudflare прокси.
 

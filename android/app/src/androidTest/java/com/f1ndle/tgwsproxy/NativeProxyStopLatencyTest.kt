@@ -1,4 +1,4 @@
-package io.github.valnesfjord.tgwsproxyrs
+﻿package com.f1ndle.tgwsproxy
 
 import android.os.SystemClock
 import android.util.Log
@@ -121,3 +121,4 @@ class NativeProxyStopLatencyTest {
         const val CONNECT_TIMEOUT_MS = 5_000
     }
 }
+

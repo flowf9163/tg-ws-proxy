@@ -1,4 +1,4 @@
-package io.github.valnesfjord.tgwsproxyrs
+﻿package com.f1ndle.tgwsproxy
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.After
@@ -165,3 +165,4 @@ class NativeProxyContractTest {
         const val QUIET_BARRIER = "androidTest quiet-phase barrier"
     }
 }
+

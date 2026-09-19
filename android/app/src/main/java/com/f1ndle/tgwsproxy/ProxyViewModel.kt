@@ -1,4 +1,4 @@
-package io.github.valnesfjord.tgwsproxyrs
+﻿package com.f1ndle.tgwsproxy
 
 import android.app.Application
 import android.content.ActivityNotFoundException
@@ -119,3 +119,4 @@ class ProxyViewModel(application: Application) : AndroidViewModel(application) {
         private const val MAX_LOG_LINES = 500
     }
 }
+

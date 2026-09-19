@@ -5,10 +5,10 @@ plugins {
 }
 
 android {
-    namespace = "io.github.valnesfjord.tgwsproxyrs"
+    namespace = "com.f1ndle.tgwsproxy"
 
     defaultConfig {
-        applicationId = "io.github.valnesfjord.tgwsproxyrs"
+        applicationId = "com.f1ndle.tgwsproxy"
     }
 
     dependenciesInfo {

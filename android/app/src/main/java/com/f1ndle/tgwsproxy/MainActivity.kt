@@ -1,4 +1,4 @@
-package io.github.valnesfjord.tgwsproxyrs
+﻿package com.f1ndle.tgwsproxy
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -12,8 +12,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.core.content.ContextCompat
-import io.github.valnesfjord.tgwsproxyrs.ui.ProxyScreen
-import io.github.valnesfjord.tgwsproxyrs.ui.TgWsTheme
+import com.f1ndle.tgwsproxy.ui.ProxyScreen
+import com.f1ndle.tgwsproxy.ui.TgWsTheme
 
 class MainActivity : ComponentActivity() {
     private val viewModel: ProxyViewModel by viewModels()
@@ -48,3 +48,4 @@ class MainActivity : ComponentActivity() {
         ProxyBridge.syncFromNative()
     }
 }
+

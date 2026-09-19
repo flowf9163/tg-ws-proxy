@@ -9,7 +9,7 @@ MANIFEST = "android/app/src/main/AndroidManifest.xml"
 STRINGS = "android/app/src/main/res/values/strings.xml"
 SHIM = "crates/android-jni/src/android.rs"
 VIEW_MODEL = (
-    "android/app/src/main/java/io/github/valnesfjord/tgwsproxyrs/ProxyViewModel.kt"
+    "android/app/src/main/java/com/f1ndle/tgwsproxy/ProxyViewModel.kt"
 )
 
 failed = False

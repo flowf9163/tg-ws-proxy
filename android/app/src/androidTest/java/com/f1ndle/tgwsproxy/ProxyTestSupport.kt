@@ -1,4 +1,4 @@
-package io.github.valnesfjord.tgwsproxyrs
+﻿package com.f1ndle.tgwsproxy
 
 import android.os.SystemClock
 import kotlinx.coroutines.CoroutineScope
@@ -207,3 +207,4 @@ internal class LogCapture : AutoCloseable {
         job.cancel()
     }
 }
+

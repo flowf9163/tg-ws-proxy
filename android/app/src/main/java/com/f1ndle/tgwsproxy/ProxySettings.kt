@@ -1,4 +1,4 @@
-package io.github.valnesfjord.tgwsproxyrs
+﻿package com.f1ndle.tgwsproxy
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -148,3 +148,4 @@ class ProxySettingsRepository(context: Context) {
         }
     }
 }
+

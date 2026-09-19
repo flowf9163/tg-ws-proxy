@@ -1,4 +1,4 @@
-package io.github.valnesfjord.tgwsproxyrs
+﻿package com.f1ndle.tgwsproxy
 
 /**
  * One line of proxy output, tagged with an id that is monotonic for the life
@@ -10,3 +10,4 @@ package io.github.valnesfjord.tgwsproxyrs
  * append.
  */
 data class LogLine(val id: Long, val text: String)
+

@@ -1,4 +1,4 @@
-package io.github.valnesfjord.tgwsproxyrs
+﻿package com.f1ndle.tgwsproxy
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -14,3 +14,4 @@ class BootReceiver : BroadcastReceiver() {
         }
     }
 }
+

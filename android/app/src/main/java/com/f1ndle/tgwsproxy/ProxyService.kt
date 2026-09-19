@@ -1,4 +1,4 @@
-package io.github.valnesfjord.tgwsproxyrs
+﻿package com.f1ndle.tgwsproxy
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -177,8 +177,8 @@ class ProxyService : Service() {
     private fun prefs() = getSharedPreferences(PREFS, MODE_PRIVATE)
 
     companion object {
-        const val ACTION_START = "io.github.valnesfjord.tgwsproxyrs.START"
-        const val ACTION_STOP = "io.github.valnesfjord.tgwsproxyrs.STOP"
+        const val ACTION_START = "com.f1ndle.tgwsproxy.START"
+        const val ACTION_STOP = "com.f1ndle.tgwsproxy.STOP"
         const val EXTRA_ARGS = "args"
         const val DEFAULT_ARGS =
             "--default-domains --cf-balance --quiet --host 127.0.0.1 --link-ip 127.0.0.1"
@@ -264,3 +264,4 @@ class ProxyService : Service() {
         }
     }
 }
+

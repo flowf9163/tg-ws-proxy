@@ -1,4 +1,4 @@
-package io.github.valnesfjord.tgwsproxyrs
+﻿package com.f1ndle.tgwsproxy
 
 /**
  * JNI boundary for `crates/android-jni/src/android.rs`.
@@ -45,3 +45,4 @@ object NativeProxy {
         ProxyBridge.setRunning(false)
     }
 }
+

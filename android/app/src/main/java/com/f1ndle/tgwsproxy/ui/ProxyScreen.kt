@@ -1,4 +1,4 @@
-package io.github.valnesfjord.tgwsproxyrs.ui
+﻿package com.f1ndle.tgwsproxy.ui
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -63,8 +63,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.valnesfjord.tgwsproxyrs.ProxyViewModel
-import io.github.valnesfjord.tgwsproxyrs.R
+import com.f1ndle.tgwsproxy.ProxyViewModel
+import com.f1ndle.tgwsproxy.R
 
 // Custom Dark Theme colors matching the reference screenshot
 private val DarkBackground = Color(0xFF101014)
@@ -596,3 +596,4 @@ private fun SettingClickableItem(
         }
     }
 }
+

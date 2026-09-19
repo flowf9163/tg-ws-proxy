@@ -4,10 +4,8 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Capital T matching the user logo -->
     <path
-        android:fillColor="#64B5F6"
-        android:pathData="M28,54 L80,32 L68,54 L80,76 Z" />
-    <path
-        android:fillColor="#90CAF9"
-        android:pathData="M32,50 h28 v8 h-28 z" />
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M30,30 H78 V44 H60 V80 H48 V44 H30 Z" />
 </vector>

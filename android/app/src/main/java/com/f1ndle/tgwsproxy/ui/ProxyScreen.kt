@@ -1,4 +1,4 @@
-﻿package com.f1ndle.tgwsproxy.ui
+package com.f1ndle.tgwsproxy.ui
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -103,6 +103,10 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
     val error by viewModel.error.collectAsStateWithLifecycle()
     val showLogsSheet by viewModel.showLogsSheet.collectAsStateWithLifecycle()
     val showDomainDialog by viewModel.showDomainDialog.collectAsStateWithLifecycle()
+    val updateInfo by viewModel.updateInfo.collectAsStateWithLifecycle()
+    val isCheckingUpdate by viewModel.isCheckingUpdate.collectAsStateWithLifecycle()
+    val updateMessage by viewModel.updateMessage.collectAsStateWithLifecycle()
+    val showUpdateDialog by viewModel.showUpdateDialog.collectAsStateWithLifecycle()
 
     val scrollState = rememberScrollState()
 
@@ -112,6 +116,13 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
             TopAppBar(
                 title = { },
                 actions = {
+                    IconButton(onClick = viewModel::openTelegramChannel) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_telegram),
+                            contentDescription = stringResource(R.string.view_telegram_channel),
+                            tint = TextSecondary,
+                        )
+                    }
                     IconButton(onClick = viewModel::openRepo) {
                         Icon(
                             imageVector = ImageVector.vectorResource(R.drawable.ic_github),
@@ -156,6 +167,59 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         fontSize = 14.sp,
                     ),
                 )
+            }
+
+            // OTA Update Available Banner
+            if (updateInfo != null) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                        .clickable { viewModel.checkForUpdates(manual = true) },
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1B2B4A)),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.update_available, updateInfo?.versionName.orEmpty()),
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = AccentBlue,
+                                    fontSize = 15.sp,
+                                ),
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = stringResource(R.string.update_dialog_title, updateInfo?.versionName.orEmpty()),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = TextSecondary,
+                                    fontSize = 12.sp,
+                                ),
+                            )
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Button(
+                            onClick = { viewModel.checkForUpdates(manual = true) },
+                            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+                            shape = RoundedCornerShape(12.dp),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.update_now),
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                ),
+                            )
+                        }
+                    }
+                }
             }
 
             // Status Card
@@ -392,6 +456,62 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                 }
             }
 
+            Spacer(Modifier.height(24.dp))
+
+            // Community & Updates Section
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(R.string.section_community),
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = AccentBlue,
+                        letterSpacing = 1.sp,
+                        fontSize = 12.sp,
+                    ),
+                    modifier = Modifier.padding(bottom = 12.dp, start = 4.dp),
+                )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(22.dp),
+                    colors = CardDefaults.cardColors(containerColor = CardBackground),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                    ) {
+                        // Telegram Channel Row
+                        SettingClickableItem(
+                            title = stringResource(R.string.setting_telegram_channel),
+                            subtitle = stringResource(R.string.setting_telegram_channel_desc),
+                            onClick = viewModel::openTelegramChannel,
+                        )
+
+                        // GitHub Repo Row
+                        SettingClickableItem(
+                            title = stringResource(R.string.setting_github_repo),
+                            subtitle = stringResource(R.string.setting_github_repo_desc),
+                            onClick = viewModel::openRepo,
+                        )
+
+                        // Check Updates Row
+                        val updateSubtitle = when {
+                            isCheckingUpdate -> stringResource(R.string.checking_updates)
+                            updateMessage != null -> updateMessage!!
+                            updateInfo != null -> stringResource(R.string.update_available, updateInfo?.versionName.orEmpty())
+                            else -> "Версия v${viewModel.currentVersion} • Нажмите для проверки"
+                        }
+
+                        SettingClickableItem(
+                            title = stringResource(R.string.setting_check_updates),
+                            subtitle = updateSubtitle,
+                            onClick = { viewModel.checkForUpdates(manual = true) },
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.height(40.dp))
         }
     }
@@ -513,6 +633,65 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                 }
             }
         }
+    }
+
+    // Update Dialog
+    if (showUpdateDialog && updateInfo != null) {
+        val info = updateInfo!!
+        AlertDialog(
+            onDismissRequest = viewModel::dismissUpdateDialog,
+            containerColor = CardBackground,
+            title = {
+                Text(
+                    text = stringResource(R.string.update_dialog_title, info.versionName),
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    if (info.changelog.isNotBlank()) {
+                        Text(
+                            text = stringResource(R.string.changelog_title),
+                            color = TextSecondary,
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = info.changelog,
+                            color = TextPrimary,
+                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
+                        )
+                    } else {
+                        Text(
+                            text = info.title,
+                            color = TextPrimary,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.openUpdateUrl()
+                        viewModel.dismissUpdateDialog()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+                ) {
+                    Text(stringResource(R.string.update_now), color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissUpdateDialog) {
+                    Text(stringResource(R.string.update_later), color = TextSecondary)
+                }
+            },
+        )
     }
 }
 

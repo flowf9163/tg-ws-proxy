@@ -23,7 +23,6 @@ Telegram → локальный MTProto (127.0.0.1:1443) → tg-ws-proxy → WSS
 | Default Domains | Автозагрузка рабочих CF доменов с GitHub |
 | CF Priority | CF прокси идёт до прямого WS |
 | CF Balance | Балансировка между CF доменами |
-| DC IP | IP датацентров Telegram |
 
 ## Credits (отдельная благодарность)
 

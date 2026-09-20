@@ -1,4 +1,4 @@
-﻿package com.f1ndle.tgwsproxy
+package com.f1ndle.tgwsproxy
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
@@ -164,14 +165,25 @@ class ProxyService : Service() {
             Intent(this, ProxyService::class.java).setAction(ACTION_STOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val largeIcon = try {
+            BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+        } catch (_: Exception) {
+            null
+        }
+
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(text)
             .setContentIntent(open)
             .setOngoing(true)
             .addAction(0, getString(R.string.stop), stop)
-            .build()
+
+        if (largeIcon != null) {
+            builder.setLargeIcon(largeIcon)
+        }
+
+        return builder.build()
     }
 
     private fun prefs() = getSharedPreferences(PREFS, MODE_PRIVATE)

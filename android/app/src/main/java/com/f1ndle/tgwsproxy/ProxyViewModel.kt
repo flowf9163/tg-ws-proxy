@@ -32,6 +32,9 @@ class ProxyViewModel(application: Application) : AndroidViewModel(application) {
     private val _showDomainDialog = MutableStateFlow(false)
     val showDomainDialog: StateFlow<Boolean> = _showDomainDialog.asStateFlow()
 
+    private val _showThemeDialog = MutableStateFlow(false)
+    val showThemeDialog: StateFlow<Boolean> = _showThemeDialog.asStateFlow()
+
     // OTA Updates
     val currentVersion: String = UpdateManager.getCurrentVersion(application)
 
@@ -135,6 +138,7 @@ class ProxyViewModel(application: Application) : AndroidViewModel(application) {
     fun updateCustomDomain(domain: String) = repository.updateCustomDomain(domain)
     fun updatePort(port: Int) = repository.updatePort(port)
     fun updateQuiet(quiet: Boolean) = repository.updateQuiet(quiet)
+    fun updateThemeMode(mode: String) = repository.updateThemeMode(mode)
 
     fun setShowLogsSheet(show: Boolean) {
         _showLogsSheet.value = show
@@ -142,6 +146,10 @@ class ProxyViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setShowDomainDialog(show: Boolean) {
         _showDomainDialog.value = show
+    }
+
+    fun setShowThemeDialog(show: Boolean) {
+        _showThemeDialog.value = show
     }
 
     fun clearLogs() {

@@ -1,4 +1,4 @@
-﻿package com.f1ndle.tgwsproxy
+package com.f1ndle.tgwsproxy
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -17,6 +17,7 @@ data class ProxyConfigData(
     val port: Int = 1443,
     val secret: String = "",
     val quiet: Boolean = true,
+    val themeMode: String = "dark",
 ) {
     fun buildCliArgs(): String {
         val parts = mutableListOf<String>()
@@ -82,6 +83,7 @@ class ProxySettingsRepository(context: Context) {
             port = prefs.getInt(KEY_PORT, 1443),
             secret = secret,
             quiet = prefs.getBoolean(KEY_QUIET, true),
+            themeMode = prefs.getString(KEY_THEME_MODE, "dark") ?: "dark",
         )
     }
 
@@ -120,6 +122,11 @@ class ProxySettingsRepository(context: Context) {
         _config.value = _config.value.copy(quiet = value)
     }
 
+    fun updateThemeMode(value: String) {
+        prefs.edit { putString(KEY_THEME_MODE, value) }
+        _config.value = _config.value.copy(themeMode = value)
+    }
+
     companion object {
         const val PREFS_NAME = "tg_ws_proxy_settings"
         const val KEY_AUTOSTART = "autostart"
@@ -130,6 +137,7 @@ class ProxySettingsRepository(context: Context) {
         const val KEY_PORT = "port"
         const val KEY_SECRET = "secret"
         const val KEY_QUIET = "quiet"
+        const val KEY_THEME_MODE = "theme_mode"
 
         fun generateSecret(): String {
             val bytes = ByteArray(16)

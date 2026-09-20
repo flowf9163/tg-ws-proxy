@@ -1,4 +1,4 @@
-﻿package com.f1ndle.tgwsproxy
+package com.f1ndle.tgwsproxy
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -11,7 +11,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.f1ndle.tgwsproxy.ui.ProxyScreen
 import com.f1ndle.tgwsproxy.ui.TgWsTheme
 
@@ -37,7 +39,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            TgWsTheme {
+            val config by viewModel.config.collectAsStateWithLifecycle()
+            TgWsTheme(themeMode = config.themeMode) {
                 ProxyScreen(viewModel)
             }
         }

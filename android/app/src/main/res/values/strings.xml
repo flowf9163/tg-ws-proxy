@@ -25,6 +25,12 @@
     <string name="setting_custom_domain_desc">Свой домен или по умолчанию</string>
     <string name="setting_logs_title">Журнал работы</string>
     <string name="setting_logs_desc">Просмотр логов прокси</string>
+    <string name="setting_theme_title">Тема оформления</string>
+    <string name="setting_theme_desc">Выбор темы приложения</string>
+    <string name="theme_system">Системная</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dialog_title">Тема оформления</string>
 
     <string name="section_community">СООБЩЕСТВО И ОБНОВЛЕНИЯ</string>
     <string name="setting_telegram_channel">Telegram-канал</string>

@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -42,13 +45,16 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,43 +72,123 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.f1ndle.tgwsproxy.ProxyViewModel
 import com.f1ndle.tgwsproxy.R
 
-// Custom Dark Theme colors matching the reference screenshot
-private val DarkBackground = Color(0xFF101014)
-private val CardBackground = Color(0xFF1A1A22)
-private val ButtonBackground = Color(0xFF262632)
-private val PowerButtonInactive = Color(0xFF2B2A34)
-private val PowerButtonActive = Color(0xFF324468)
-private val AccentBlue = Color(0xFF5E9CFF)
-private val StatusRed = Color(0xFFE55755)
-private val StatusGreen = Color(0xFF4CAF50)
-private val TextPrimary = Color(0xFFFFFFFF)
-private val TextSecondary = Color(0xFF90909A)
-private val TextMuted = Color(0xFF70707A)
-
-private val CustomDarkColorScheme = darkColorScheme(
-    primary = AccentBlue,
-    background = DarkBackground,
-    surface = CardBackground,
-    onBackground = TextPrimary,
-    onSurface = TextPrimary,
+data class AppColors(
+    val background: Color,
+    val surface: Color,
+    val buttonBackground: Color,
+    val powerButtonInactive: Color,
+    val powerButtonActive: Color,
+    val powerIconInactive: Color,
+    val powerIconActive: Color,
+    val accent: Color,
+    val statusRed: Color,
+    val statusGreen: Color,
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val textMuted: Color,
+    val updateBannerBackground: Color,
+    val switchUncheckedTrack: Color,
+    val switchUncheckedThumb: Color,
+    val logBackground: Color,
+    val logTextColor: Color,
+    val isDark: Boolean,
 )
 
+val DarkAppColors = AppColors(
+    background = Color(0xFF101014),
+    surface = Color(0xFF1A1A22),
+    buttonBackground = Color(0xFF262632),
+    powerButtonInactive = Color(0xFF2B2A34),
+    powerButtonActive = Color(0xFF324468),
+    powerIconInactive = Color(0xFFC4C4CD),
+    powerIconActive = Color(0xFF5E9CFF),
+    accent = Color(0xFF5E9CFF),
+    statusRed = Color(0xFFE55755),
+    statusGreen = Color(0xFF4CAF50),
+    textPrimary = Color(0xFFFFFFFF),
+    textSecondary = Color(0xFF90909A),
+    textMuted = Color(0xFF70707A),
+    updateBannerBackground = Color(0xFF1B2B4A),
+    switchUncheckedTrack = Color(0xFF32323D),
+    switchUncheckedThumb = Color(0xFF8E8E98),
+    logBackground = Color(0xFF101014),
+    logTextColor = Color(0xFFC0C0C8),
+    isDark = true,
+)
+
+val LightAppColors = AppColors(
+    background = Color(0xFFF2F3F7),
+    surface = Color(0xFFFFFFFF),
+    buttonBackground = Color(0xFFE6E9F2),
+    powerButtonInactive = Color(0xFFE4E7F0),
+    powerButtonActive = Color(0xFFD6E4FF),
+    powerIconInactive = Color(0xFF7E8494),
+    powerIconActive = Color(0xFF1D72F2),
+    accent = Color(0xFF1D72F2),
+    statusRed = Color(0xFFE53935),
+    statusGreen = Color(0xFF2E7D32),
+    textPrimary = Color(0xFF141419),
+    textSecondary = Color(0xFF63636E),
+    textMuted = Color(0xFF8E8E98),
+    updateBannerBackground = Color(0xFFE2EDFE),
+    switchUncheckedTrack = Color(0xFFDCDCE2),
+    switchUncheckedThumb = Color(0xFF8E8E98),
+    logBackground = Color(0xFFEBECEF),
+    logTextColor = Color(0xFF282830),
+    isDark = false,
+)
+
+val LocalAppColors = staticCompositionLocalOf { DarkAppColors }
+
 @Composable
-fun TgWsTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = CustomDarkColorScheme,
-        content = content,
-    )
+fun TgWsTheme(
+    themeMode: String = "dark",
+    content: @Composable () -> Unit,
+) {
+    val isSystemDark = isSystemInDarkTheme()
+    val isDark = when (themeMode) {
+        "light" -> false
+        "dark" -> true
+        else -> isSystemDark
+    }
+    val appColors = if (isDark) DarkAppColors else LightAppColors
+    val colorScheme = if (isDark) {
+        darkColorScheme(
+            primary = appColors.accent,
+            background = appColors.background,
+            surface = appColors.surface,
+            onBackground = appColors.textPrimary,
+            onSurface = appColors.textPrimary,
+        )
+    } else {
+        lightColorScheme(
+            primary = appColors.accent,
+            background = appColors.background,
+            surface = appColors.surface,
+            onBackground = appColors.textPrimary,
+            onSurface = appColors.textPrimary,
+        )
+    }
+
+    CompositionLocalProvider(LocalAppColors provides appColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            content = content,
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProxyScreen(viewModel: ProxyViewModel) {
+    val colors = LocalAppColors.current
+
     val config by viewModel.config.collectAsStateWithLifecycle()
     val running by viewModel.running.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val showLogsSheet by viewModel.showLogsSheet.collectAsStateWithLifecycle()
     val showDomainDialog by viewModel.showDomainDialog.collectAsStateWithLifecycle()
+    val showThemeDialog by viewModel.showThemeDialog.collectAsStateWithLifecycle()
     val updateInfo by viewModel.updateInfo.collectAsStateWithLifecycle()
     val isCheckingUpdate by viewModel.isCheckingUpdate.collectAsStateWithLifecycle()
     val updateMessage by viewModel.updateMessage.collectAsStateWithLifecycle()
@@ -111,7 +197,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
     val scrollState = rememberScrollState()
 
     Scaffold(
-        containerColor = DarkBackground,
+        containerColor = colors.background,
         topBar = {
             TopAppBar(
                 title = { },
@@ -120,19 +206,19 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         Icon(
                             painter = painterResource(R.drawable.ic_telegram),
                             contentDescription = stringResource(R.string.view_telegram_channel),
-                            tint = TextSecondary,
+                            tint = colors.textSecondary,
                         )
                     }
                     IconButton(onClick = viewModel::openRepo) {
                         Icon(
                             imageVector = ImageVector.vectorResource(R.drawable.ic_github),
                             contentDescription = stringResource(R.string.view_on_github),
-                            tint = TextSecondary,
+                            tint = colors.textSecondary,
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkBackground,
+                    containerColor = colors.background,
                 ),
             )
         },
@@ -155,7 +241,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                     text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary,
+                        color = colors.textPrimary,
                         fontSize = 30.sp,
                     ),
                 )
@@ -163,7 +249,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                 Text(
                     text = stringResource(R.string.app_subtitle),
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = TextSecondary,
+                        color = colors.textSecondary,
                         fontSize = 14.sp,
                     ),
                 )
@@ -177,7 +263,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         .padding(bottom = 16.dp)
                         .clickable { viewModel.checkForUpdates(manual = true) },
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1B2B4A)),
+                    colors = CardDefaults.cardColors(containerColor = colors.updateBannerBackground),
                 ) {
                     Row(
                         modifier = Modifier
@@ -191,7 +277,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                                 text = stringResource(R.string.update_available, updateInfo?.versionName.orEmpty()),
                                 style = MaterialTheme.typography.titleSmall.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = AccentBlue,
+                                    color = colors.accent,
                                     fontSize = 15.sp,
                                 ),
                             )
@@ -199,7 +285,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                             Text(
                                 text = stringResource(R.string.update_dialog_title, updateInfo?.versionName.orEmpty()),
                                 style = MaterialTheme.typography.bodySmall.copy(
-                                    color = TextSecondary,
+                                    color = colors.textSecondary,
                                     fontSize = 12.sp,
                                 ),
                             )
@@ -207,7 +293,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         Spacer(Modifier.width(8.dp))
                         Button(
                             onClick = { viewModel.checkForUpdates(manual = true) },
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.accent),
                             shape = RoundedCornerShape(12.dp),
                         ) {
                             Text(
@@ -226,7 +312,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(22.dp),
-                colors = CardDefaults.cardColors(containerColor = CardBackground),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
             ) {
                 Column(
                     modifier = Modifier
@@ -241,14 +327,14 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                             modifier = Modifier
                                 .size(12.dp)
                                 .clip(CircleShape)
-                                .background(if (running) StatusGreen else StatusRed),
+                                .background(if (running) colors.statusGreen else colors.statusRed),
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
                             text = stringResource(if (running) R.string.status_running else R.string.status_stopped),
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.SemiBold,
-                                color = TextPrimary,
+                                color = colors.textPrimary,
                                 fontSize = 21.sp,
                             ),
                         )
@@ -264,7 +350,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         Text(
                             text = "MTProto",
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = TextMuted,
+                                color = colors.textMuted,
                                 fontSize = 14.sp,
                             ),
                             modifier = Modifier.width(90.dp),
@@ -272,7 +358,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         Text(
                             text = "127.0.0.1:${config.port}",
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = TextPrimary,
+                                color = colors.textPrimary,
                                 fontSize = 14.sp,
                                 fontFamily = FontFamily.Monospace,
                             ),
@@ -289,7 +375,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         Text(
                             text = "Cloudflare",
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = TextMuted,
+                                color = colors.textMuted,
                                 fontSize = 14.sp,
                             ),
                             modifier = Modifier.width(90.dp),
@@ -302,7 +388,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         Text(
                             text = cfDisplay,
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = TextPrimary,
+                                color = colors.textPrimary,
                                 fontSize = 14.sp,
                             ),
                         )
@@ -324,7 +410,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
 
             // Big Central Power Button
             val animatedColor by animateColorAsState(
-                targetValue = if (running) PowerButtonActive else PowerButtonInactive,
+                targetValue = if (running) colors.powerButtonActive else colors.powerButtonInactive,
                 label = "powerColor",
             )
             val buttonScale by animateFloatAsState(
@@ -344,7 +430,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                 Icon(
                     painter = painterResource(R.drawable.ic_power),
                     contentDescription = stringResource(if (running) R.string.stop else R.string.start),
-                    tint = if (running) AccentBlue else Color(0xFFC4C4CD),
+                    tint = if (running) colors.powerIconActive else colors.powerIconInactive,
                     modifier = Modifier.size(52.dp),
                 )
             }
@@ -354,7 +440,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
             Text(
                 text = stringResource(if (running) R.string.press_to_stop else R.string.press_to_start),
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = TextSecondary,
+                    color = colors.textSecondary,
                     fontSize = 14.sp,
                 ),
             )
@@ -369,8 +455,8 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                     .height(54.dp),
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = ButtonBackground,
-                    contentColor = TextPrimary,
+                    containerColor = colors.buttonBackground,
+                    contentColor = colors.textPrimary,
                 ),
             ) {
                 Text(
@@ -390,7 +476,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                     text = stringResource(R.string.section_settings),
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = AccentBlue,
+                        color = colors.accent,
                         letterSpacing = 1.sp,
                         fontSize = 12.sp,
                     ),
@@ -400,7 +486,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardBackground),
+                    colors = CardDefaults.cardColors(containerColor = colors.surface),
                 ) {
                     Column(
                         modifier = Modifier
@@ -452,6 +538,18 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                             subtitle = stringResource(R.string.setting_logs_desc),
                             onClick = { viewModel.setShowLogsSheet(true) },
                         )
+
+                        // Theme Selection Row
+                        val themeSubtitle = when (config.themeMode) {
+                            "light" -> stringResource(R.string.theme_light)
+                            "system" -> stringResource(R.string.theme_system)
+                            else -> stringResource(R.string.theme_dark)
+                        }
+                        SettingClickableItem(
+                            title = stringResource(R.string.setting_theme_title),
+                            subtitle = themeSubtitle,
+                            onClick = { viewModel.setShowThemeDialog(true) },
+                        )
                     }
                 }
             }
@@ -464,7 +562,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                     text = stringResource(R.string.section_community),
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = AccentBlue,
+                        color = colors.accent,
                         letterSpacing = 1.sp,
                         fontSize = 12.sp,
                     ),
@@ -474,7 +572,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardBackground),
+                    colors = CardDefaults.cardColors(containerColor = colors.surface),
                 ) {
                     Column(
                         modifier = Modifier
@@ -521,11 +619,11 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
         var domainInput by remember { mutableStateOf(config.customDomain) }
         AlertDialog(
             onDismissRequest = { viewModel.setShowDomainDialog(false) },
-            containerColor = CardBackground,
+            containerColor = colors.surface,
             title = {
                 Text(
                     text = stringResource(R.string.setting_custom_domain_title),
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     fontWeight = FontWeight.Bold,
                 )
             },
@@ -533,7 +631,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                 Column {
                     Text(
                         text = stringResource(R.string.custom_domain_hint),
-                        color = TextSecondary,
+                        color = colors.textSecondary,
                         style = MaterialTheme.typography.bodySmall,
                     )
                     Spacer(Modifier.height(12.dp))
@@ -542,7 +640,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         onValueChange = { domainInput = it },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        placeholder = { Text("f1ndle.biz", color = TextMuted) },
+                        placeholder = { Text("f1ndle.biz", color = colors.textMuted) },
                     )
                 }
             },
@@ -552,14 +650,73 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         viewModel.updateCustomDomain(domainInput.trim())
                         viewModel.setShowDomainDialog(false)
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent),
                 ) {
                     Text(stringResource(R.string.save), color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.setShowDomainDialog(false) }) {
-                    Text(stringResource(R.string.cancel), color = TextSecondary)
+                    Text(stringResource(R.string.cancel), color = colors.textSecondary)
+                }
+            },
+        )
+    }
+
+    // Theme Selection Dialog
+    if (showThemeDialog) {
+        val options = listOf(
+            "system" to stringResource(R.string.theme_system),
+            "dark" to stringResource(R.string.theme_dark),
+            "light" to stringResource(R.string.theme_light),
+        )
+        AlertDialog(
+            onDismissRequest = { viewModel.setShowThemeDialog(false) },
+            containerColor = colors.surface,
+            title = {
+                Text(
+                    text = stringResource(R.string.theme_dialog_title),
+                    color = colors.textPrimary,
+                    fontWeight = FontWeight.Bold,
+                )
+            },
+            text = {
+                Column {
+                    options.forEach { (mode, label) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.updateThemeMode(mode)
+                                    viewModel.setShowThemeDialog(false)
+                                }
+                                .padding(vertical = 10.dp, horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(
+                                selected = config.themeMode == mode,
+                                onClick = {
+                                    viewModel.updateThemeMode(mode)
+                                    viewModel.setShowThemeDialog(false)
+                                },
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = colors.accent,
+                                    unselectedColor = colors.textSecondary,
+                                ),
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                text = label,
+                                color = colors.textPrimary,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.setShowThemeDialog(false) }) {
+                    Text(stringResource(R.string.cancel), color = colors.textSecondary)
                 }
             },
         )
@@ -571,7 +728,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.setShowLogsSheet(false) },
             sheetState = sheetState,
-            containerColor = CardBackground,
+            containerColor = colors.surface,
         ) {
             Column(
                 modifier = Modifier
@@ -587,13 +744,13 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                     Text(
                         text = stringResource(R.string.setting_logs_title),
                         style = MaterialTheme.typography.titleMedium.copy(
-                            color = TextPrimary,
+                            color = colors.textPrimary,
                             fontWeight = FontWeight.Bold,
                         ),
                     )
                     Row {
                         TextButton(onClick = viewModel::clearLogs) {
-                            Text(stringResource(R.string.clear_logs), color = AccentBlue)
+                            Text(stringResource(R.string.clear_logs), color = colors.accent)
                         }
                     }
                 }
@@ -612,7 +769,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                 SelectionContainer(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(DarkBackground, RoundedCornerShape(12.dp))
+                        .background(colors.logBackground, RoundedCornerShape(12.dp))
                         .padding(10.dp),
                 ) {
                     LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
@@ -622,7 +779,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontFamily = FontFamily.Monospace,
                                     fontSize = 12.sp,
-                                    color = Color(0xFFC0C0C8),
+                                    color = colors.logTextColor,
                                 ),
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -640,11 +797,11 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
         val info = updateInfo!!
         AlertDialog(
             onDismissRequest = viewModel::dismissUpdateDialog,
-            containerColor = CardBackground,
+            containerColor = colors.surface,
             title = {
                 Text(
                     text = stringResource(R.string.update_dialog_title, info.versionName),
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     fontWeight = FontWeight.Bold,
                 )
             },
@@ -657,19 +814,19 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                     if (info.changelog.isNotBlank()) {
                         Text(
                             text = stringResource(R.string.changelog_title),
-                            color = TextSecondary,
+                            color = colors.textSecondary,
                             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
                         )
                         Spacer(Modifier.height(6.dp))
                         Text(
                             text = info.changelog,
-                            color = TextPrimary,
+                            color = colors.textPrimary,
                             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                         )
                     } else {
                         Text(
                             text = info.title,
-                            color = TextPrimary,
+                            color = colors.textPrimary,
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
@@ -681,14 +838,14 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         viewModel.openUpdateUrl()
                         viewModel.dismissUpdateDialog()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent),
                 ) {
                     Text(stringResource(R.string.update_now), color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = viewModel::dismissUpdateDialog) {
-                    Text(stringResource(R.string.update_later), color = TextSecondary)
+                    Text(stringResource(R.string.update_later), color = colors.textSecondary)
                 }
             },
         )
@@ -702,6 +859,7 @@ private fun SettingSwitchItem(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
+    val colors = LocalAppColors.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -714,7 +872,7 @@ private fun SettingSwitchItem(
                 text = title,
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     fontSize = 16.sp,
                 ),
             )
@@ -722,7 +880,7 @@ private fun SettingSwitchItem(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall.copy(
-                    color = TextSecondary,
+                    color = colors.textSecondary,
                     fontSize = 13.sp,
                 ),
             )
@@ -732,10 +890,10 @@ private fun SettingSwitchItem(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = Color(0xFF1B2A4A),
-                checkedTrackColor = AccentBlue,
-                uncheckedThumbColor = Color(0xFF8E8E98),
-                uncheckedTrackColor = Color(0xFF32323D),
+                checkedThumbColor = if (colors.isDark) Color(0xFF1B2A4A) else Color.White,
+                checkedTrackColor = colors.accent,
+                uncheckedThumbColor = colors.switchUncheckedThumb,
+                uncheckedTrackColor = colors.switchUncheckedTrack,
                 uncheckedBorderColor = Color.Transparent,
             ),
         )
@@ -748,6 +906,7 @@ private fun SettingClickableItem(
     subtitle: String,
     onClick: () -> Unit,
 ) {
+    val colors = LocalAppColors.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -760,7 +919,7 @@ private fun SettingClickableItem(
                 text = title,
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     fontSize = 16.sp,
                 ),
             )
@@ -768,11 +927,10 @@ private fun SettingClickableItem(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall.copy(
-                    color = TextSecondary,
+                    color = colors.textSecondary,
                     fontSize = 13.sp,
                 ),
             )
         }
     }
 }
-

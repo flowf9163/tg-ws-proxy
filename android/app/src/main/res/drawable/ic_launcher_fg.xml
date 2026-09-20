@@ -4,8 +4,8 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Capital T with subtle rounded corners matching the user logo -->
+    <!-- Capital T with balanced proportions and rounded corners for adaptive launcher icons -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M22.5,15.75 H85.5 C89.1,15.75 92.25,18.9 92.25,22.5 V27 C92.25,30.6 89.1,33.75 85.5,33.75 H64.8 V87.75 C64.8,91.35 61.65,94.5 58.05,94.5 H49.95 C46.35,94.5 43.2,91.35 43.2,87.75 V33.75 H22.5 C18.9,33.75 15.75,30.6 15.75,27 V22.5 C15.75,18.9 18.9,15.75 22.5,15.75 Z" />
+        android:pathData="M38,31 H70 C71.1,31 72,31.9 72,33 V39.5 C72,40.6 71.1,41.5 70,41.5 H59.5 V75 C59.5,76.1 58.6,77 57.5,77 H50.5 C49.4,77 48.5,76.1 48.5,75 V41.5 H38 C36.9,41.5 36,40.6 36,39.5 V33 C36,31.9 36.9,31 38,31 Z" />
 </vector>

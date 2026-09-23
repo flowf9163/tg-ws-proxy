@@ -1,4 +1,4 @@
-﻿package com.f1ndle.tgwsproxy
+package com.f1ndle.tgwsproxy
 
 /**
  * JNI boundary for `crates/android-jni/src/android.rs`.
@@ -24,6 +24,9 @@ object NativeProxy {
 
     @JvmStatic
     external fun nativeIsRunning(): Boolean
+
+    @JvmStatic
+    external fun nativeTrimMemory()
 
     @JvmStatic
     fun onNativeLog(line: String) {

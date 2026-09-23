@@ -84,6 +84,11 @@ class ProxyService : Service() {
         super.onDestroy()
     }
 
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        NativeProxy.nativeTrimMemory()
+    }
+
     private fun startProxy(args: String) {
         prefs().edit { putString(PREF_ARGS, args) }
         ProxyBridge.clearError()
@@ -193,7 +198,7 @@ class ProxyService : Service() {
         const val ACTION_STOP = "com.f1ndle.tgwsproxy.STOP"
         const val EXTRA_ARGS = "args"
         const val DEFAULT_ARGS =
-            "--default-domains --cf-balance --quiet --host 127.0.0.1 --link-ip 127.0.0.1"
+            "--default-domains --cf-balance --quiet --pool-size 1 --host 127.0.0.1 --link-ip 127.0.0.1"
         const val PREFS = "tg_ws_proxy"
         const val PREF_ARGS = "args"
 

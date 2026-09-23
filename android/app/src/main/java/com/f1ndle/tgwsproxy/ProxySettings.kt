@@ -27,6 +27,8 @@ data class ProxyConfigData(
         parts.add("127.0.0.1")
         parts.add("--port")
         parts.add(port.toString())
+        parts.add("--pool-size")
+        parts.add("1")
 
         if (secret.isNotBlank()) {
             parts.add("--secret")

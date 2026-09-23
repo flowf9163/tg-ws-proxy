@@ -151,6 +151,29 @@ pub extern "system" fn Java_com_f1ndle_tgwsproxy_NativeProxy_nativeIsRunning<
         .into_value()
 }
 
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_f1ndle_tgwsproxy_NativeProxy_nativeTrimMemory<
+    'caller,
+>(
+    _unowned_env: EnvUnowned<'caller>,
+    _class: JClass<'caller>,
+) {
+    trim_native_memory();
+}
+
+/// Force the Android Bionic allocator (Scudo / jemalloc) to purge all freed,
+/// dirty pages back to the Linux kernel via `madvise(MADV_DONTNEED)`.
+pub fn trim_native_memory() {
+    #[cfg(target_os = "android")]
+    unsafe {
+        extern "C" {
+            fn mallopt(param: i32, value: i32) -> i32;
+        }
+        // M_PURGE = -101 on Android Bionic (purges dirty/cached pages back to kernel)
+        mallopt(-101, 0);
+    }
+}
+
 /// Extract the value from a `with_env` outcome, falling back to the default on
 /// any JNI error or panic — the Kotlin side is only ever told success or an
 /// error `jstring`, never made to observe a Rust panic.
@@ -240,6 +263,7 @@ fn start_proxy(args: &str) -> Result<(), String> {
                 // worker stays parked to drive the shared IO driver while the
                 // first is mid-burst.
                 .worker_threads(2)
+                .max_blocking_threads(8)
                 .thread_name("tg-ws-worker")
                 .on_thread_start(attach_runtime_thread)
                 .on_thread_stop(detach_runtime_thread)
@@ -253,6 +277,25 @@ fn start_proxy(args: &str) -> Result<(), String> {
             };
 
             let result = rt.block_on(async move {
+                let mut shutdown_trim_rx = shutdown_rx.clone();
+                tokio::spawn(async move {
+                    let mut interval = tokio::time::interval(Duration::from_secs(60));
+                    loop {
+                        tokio::select! {
+                            _ = interval.tick() => {
+                                trim_native_memory();
+                            }
+                            _ = async {
+                                while !*shutdown_trim_rx.borrow_and_update() {
+                                    if shutdown_trim_rx.changed().await.is_err() {
+                                        break;
+                                    }
+                                }
+                            } => break,
+                        }
+                    }
+                });
+
                 let shutdown = async move {
                     let mut rx = shutdown_rx;
                     loop {
@@ -589,11 +632,14 @@ fn call_static_impl(
         return;
     };
     let _ = vm.attach_current_thread(|env| -> jni::errors::Result<()> {
-        if call(env, class).is_err() {
-            // A pending exception on a detached worker is fatal (this is what
-            // crashed Start: ClassNotFoundException from FindClass).
-            env.exception_clear();
-        }
+        let _ = env.with_local_frame(16, |env| {
+            if call(env, class).is_err() {
+                // A pending exception on a detached worker is fatal (this is what
+                // crashed Start: ClassNotFoundException from FindClass).
+                env.exception_clear();
+            }
+            jni::errors::Result::Ok(())
+        });
         Ok(())
     });
 }

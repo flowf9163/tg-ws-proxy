@@ -1,4 +1,4 @@
-﻿package com.f1ndle.tgwsproxy
+package com.f1ndle.tgwsproxy
 
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,7 +60,9 @@ object ProxyBridge {
 
     fun onLog(line: String) {
         _logs.tryEmit(line)
-        tgLinkRegex.find(line)?.let { _tgLink.value = it.value }
+        if (_tgLink.value == null) {
+            tgLinkRegex.find(line)?.let { _tgLink.value = it.value }
+        }
     }
 
     fun onListening(link: String) {

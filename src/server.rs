@@ -317,6 +317,16 @@ pub async fn run_with_listen(
             pool_clone.warmup(&config_clone).await;
         });
     }
+    {
+        let pool_clone = pool.clone();
+        tokio::spawn(async move {
+            let mut interval = tokio::time::interval(Duration::from_secs(45));
+            loop {
+                interval.tick().await;
+                pool_clone.reap_stale().await;
+            }
+        });
+    }
 
     // ── Accept loop ───────────────────────────────────────────────────────
     // Acquire a permit before each accept() to cap concurrent connections.

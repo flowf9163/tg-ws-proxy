@@ -347,6 +347,32 @@ impl WsPool {
         debug!("WS pool warmup complete");
     }
 
+    /// Prune expired or remotely-closed connections from all idle buckets.
+    ///
+    /// Prevents idle sockets and TLS state from lingering when a DC is never
+    /// queried or when network connectivity drops.
+    pub async fn reap_stale(&self) {
+        let now = Instant::now();
+        {
+            let mut lock = self.idle.lock().await;
+            for bucket in lock.values_mut() {
+                bucket.retain_mut(|entry| {
+                    now.saturating_duration_since(entry.created) <= self.max_age
+                        && entry.ws.next().now_or_never().is_none()
+                });
+            }
+        }
+        {
+            let mut lock = self.cf_idle.lock().await;
+            for bucket in lock.values_mut() {
+                bucket.retain_mut(|entry| {
+                    now.saturating_duration_since(entry.created) <= self.max_age
+                        && entry.ws.next().now_or_never().is_none()
+                });
+            }
+        }
+    }
+
     // ── Internal ─────────────────────────────────────────────────────────
 
     fn schedule_refill(self: &Arc<Self>, dc: u32, is_media: bool, target_ip: &str, skip_tls: bool) {

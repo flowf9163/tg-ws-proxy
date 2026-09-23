@@ -93,6 +93,12 @@ const TLS_READ_HEADROOM: usize = 256;
 /// connection.
 const CLIENT_READ_BUF_SIZE: usize = TLS_MAX_RECORD_PAYLOAD + TLS_READ_HEADROOM;
 
+/// Maximum idle duration with zero bytes transferred before a bridged session is
+/// treated as abandoned/dead and closed. Telegram sends keepalive pings every
+/// 30-60 seconds, so 10 minutes of complete inactivity indicates a dead or
+/// dropped connection.
+const BRIDGE_INACTIVITY_TIMEOUT: Duration = Duration::from_secs(600);
+
 // ─── Failure cooldowns ───────────────────────────────────────────────────────
 
 /// Process-wide "do not retry until" deadlines for one fallback tier.
@@ -113,11 +119,11 @@ impl<K: Eq + Hash> CooldownMap<K> {
     }
 
     fn set(&self, key: K, cooldown: Duration) {
-        self.entries
-            .lock()
-            .unwrap()
-            .get_or_insert_with(HashMap::new)
-            .insert(key, Instant::now() + cooldown);
+        let now = Instant::now();
+        let mut guard = self.entries.lock().unwrap();
+        let map = guard.get_or_insert_with(HashMap::new);
+        map.retain(|_, &mut until| until > now);
+        map.insert(key, now + cooldown);
     }
 
     fn clear<Q>(&self, key: &Q)
@@ -1374,9 +1380,9 @@ async fn bridge_ws(reader: ClientReader, writer: ClientWriter, params: WsBridgeP
             let mut buf = vec![0u8; CLIENT_READ_BUF_SIZE];
 
             loop {
-                let n = match reader.read(&mut buf).await {
-                    Ok(0) | Err(_) => break,
-                    Ok(n) => n,
+                let n = match tokio::time::timeout(BRIDGE_INACTIVITY_TIMEOUT, reader.read(&mut buf)).await {
+                    Ok(Ok(0)) | Ok(Err(_)) | Err(_) => break,
+                    Ok(Ok(n)) => n,
                 };
                 let chunk = &mut buf[..n];
 
@@ -1434,10 +1440,10 @@ async fn bridge_ws(reader: ClientReader, writer: ClientWriter, params: WsBridgeP
 
         loop {
             // Use the source half of the split WS stream.
-            let data = match ws_source.next().await {
-                Some(Ok(Message::Binary(b))) => b,
-                Some(Ok(Message::Text(t))) => t.into_bytes(),
-                Some(Ok(Message::Ping(_))) | Some(Ok(Message::Pong(_))) => continue,
+            let data = match tokio::time::timeout(BRIDGE_INACTIVITY_TIMEOUT, ws_source.next()).await {
+                Ok(Some(Ok(Message::Binary(b)))) => b,
+                Ok(Some(Ok(Message::Text(t)))) => t.into_bytes(),
+                Ok(Some(Ok(Message::Ping(_)))) | Ok(Some(Ok(Message::Pong(_)))) => continue,
                 _ => break,
             };
             let mut data = data;
@@ -1620,9 +1626,9 @@ async fn bridge_relay(reader: ClientReader, writer: ClientWriter, params: RelayP
             let mut buf = vec![0u8; CLIENT_READ_BUF_SIZE];
 
             loop {
-                let n = match reader.read(&mut buf).await {
-                    Ok(0) | Err(_) => break,
-                    Ok(n) => n,
+                let n = match tokio::time::timeout(BRIDGE_INACTIVITY_TIMEOUT, reader.read(&mut buf)).await {
+                    Ok(Ok(0)) | Ok(Err(_)) | Err(_) => break,
+                    Ok(Ok(n)) => n,
                 };
                 let chunk = &mut buf[..n];
                 clt_dec.apply_keystream(chunk);
@@ -1660,13 +1666,13 @@ async fn bridge_relay(reader: ClientReader, writer: ClientWriter, params: RelayP
 
         loop {
             let read = if faketls {
-                read_tls_appdata(&mut rem_reader, &mut buf).await
+                tokio::time::timeout(BRIDGE_INACTIVITY_TIMEOUT, read_tls_appdata(&mut rem_reader, &mut buf)).await
             } else {
-                rem_reader.read(&mut buf).await
+                tokio::time::timeout(BRIDGE_INACTIVITY_TIMEOUT, rem_reader.read(&mut buf)).await
             };
             let n = match read {
-                Ok(0) | Err(_) => break,
-                Ok(n) => n,
+                Ok(Ok(0)) | Ok(Err(_)) | Err(_) => break,
+                Ok(Ok(n)) => n,
             };
 
             let chunk = &mut buf[..n];
@@ -1761,9 +1767,9 @@ async fn bridge_tcp(
             let mut buf = vec![0u8; CLIENT_READ_BUF_SIZE];
 
             loop {
-                let n = match reader.read(&mut buf).await {
-                    Ok(0) | Err(_) => break,
-                    Ok(n) => n,
+                let n = match tokio::time::timeout(BRIDGE_INACTIVITY_TIMEOUT, reader.read(&mut buf)).await {
+                    Ok(Ok(0)) | Ok(Err(_)) | Err(_) => break,
+                    Ok(Ok(n)) => n,
                 };
                 let chunk = &mut buf[..n];
 
@@ -1783,9 +1789,9 @@ async fn bridge_tcp(
         let mut buf = vec![0u8; RELAY_BUF_SIZE];
 
         loop {
-            let n = match rem_reader.read(&mut buf).await {
-                Ok(0) | Err(_) => break,
-                Ok(n) => n,
+            let n = match tokio::time::timeout(BRIDGE_INACTIVITY_TIMEOUT, rem_reader.read(&mut buf)).await {
+                Ok(Ok(0)) | Ok(Err(_)) | Err(_) => break,
+                Ok(Ok(n)) => n,
             };
             let chunk = &mut buf[..n];
 

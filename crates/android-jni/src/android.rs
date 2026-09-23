@@ -161,16 +161,18 @@ pub extern "system" fn Java_com_f1ndle_tgwsproxy_NativeProxy_nativeTrimMemory<
     trim_native_memory();
 }
 
+#[cfg(target_os = "android")]
+unsafe extern "C" {
+    fn mallopt(param: i32, value: i32) -> i32;
+}
+
 /// Force the Android Bionic allocator (Scudo / jemalloc) to purge all freed,
 /// dirty pages back to the Linux kernel via `madvise(MADV_DONTNEED)`.
 pub fn trim_native_memory() {
     #[cfg(target_os = "android")]
     unsafe {
-        extern "C" {
-            fn mallopt(param: i32, value: i32) -> i32;
-        }
         // M_PURGE = -101 on Android Bionic (purges dirty/cached pages back to kernel)
-        mallopt(-101, 0);
+        let _ = mallopt(-101, 0);
     }
 }
 
@@ -285,13 +287,11 @@ fn start_proxy(args: &str) -> Result<(), String> {
                             _ = interval.tick() => {
                                 trim_native_memory();
                             }
-                            _ = async {
-                                while !*shutdown_trim_rx.borrow_and_update() {
-                                    if shutdown_trim_rx.changed().await.is_err() {
-                                        break;
-                                    }
+                            res = shutdown_trim_rx.changed() => {
+                                if res.is_err() || *shutdown_trim_rx.borrow() {
+                                    break;
                                 }
-                            } => break,
+                            }
                         }
                     }
                 });
@@ -632,14 +632,11 @@ fn call_static_impl(
         return;
     };
     let _ = vm.attach_current_thread(|env| -> jni::errors::Result<()> {
-        let _ = env.with_local_frame(16, |env| {
-            if call(env, class).is_err() {
-                // A pending exception on a detached worker is fatal (this is what
-                // crashed Start: ClassNotFoundException from FindClass).
-                env.exception_clear();
-            }
-            jni::errors::Result::Ok(())
-        });
+        if call(env, class).is_err() {
+            // A pending exception on a detached worker is fatal (this is what
+            // crashed Start: ClassNotFoundException from FindClass).
+            env.exception_clear();
+        }
         Ok(())
     });
 }

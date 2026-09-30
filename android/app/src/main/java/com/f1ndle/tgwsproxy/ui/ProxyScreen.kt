@@ -550,6 +550,13 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                             subtitle = themeSubtitle,
                             onClick = { viewModel.setShowThemeDialog(true) },
                         )
+
+                        // Quick Settings Tile Row
+                        SettingClickableItem(
+                            title = stringResource(R.string.setting_quick_settings_tile),
+                            subtitle = stringResource(R.string.setting_quick_settings_tile_desc),
+                            onClick = viewModel::requestAddQuickSettingsTile,
+                        )
                     }
                 }
             }

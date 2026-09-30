@@ -58,4 +58,12 @@
     <string name="cancel">Отмена</string>
     <string name="clear_logs">Очистить логи</string>
     <string name="custom_domain_hint">Например: f1ndle.biz (оставьте пустым для автовыбора)</string>
+
+    <string name="tile_name">TG WS Proxy</string>
+    <string name="tile_active">Включено</string>
+    <string name="tile_inactive">Выключено</string>
+    <string name="setting_quick_settings_tile">Тумблер в шторке</string>
+    <string name="setting_quick_settings_tile_desc">Добавить переключатель в панель быстрых настроек</string>
+    <string name="tile_added_success">Плитка добавлена в шторку</string>
+    <string name="tile_manual_add_hint">Откройте шторку быстрых настроек, нажмите «Изменить» (карандаш) и перетащите плитку TG WS Proxy</string>
 </resources>

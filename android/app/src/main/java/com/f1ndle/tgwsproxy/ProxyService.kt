@@ -44,6 +44,7 @@ class ProxyService : Service() {
         ensureChannel()
         scope.launch {
             ProxyBridge.running.collect { isRunning ->
+                ProxyTileService.requestUpdate(this@ProxyService)
                 if (proxyStarted && !isRunning) {
                     proxyStarted = false
                     stopForeground(STOP_FOREGROUND_REMOVE)
@@ -81,6 +82,7 @@ class ProxyService : Service() {
     override fun onDestroy() {
         scope.cancel()
         stopNative()
+        ProxyTileService.requestUpdate(this)
         super.onDestroy()
     }
 

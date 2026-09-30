@@ -180,6 +180,19 @@ class ProxyViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun requestAddQuickSettingsTile() {
+        val app = getApplication<Application>()
+        ProxyTileService.requestAddTile(app) { supported, added ->
+            if (supported) {
+                if (added) {
+                    ProxyBridge.reportMessage(app.getString(R.string.tile_added_success))
+                }
+            } else {
+                ProxyBridge.reportMessage(app.getString(R.string.tile_manual_add_hint))
+            }
+        }
+    }
+
     companion object {
         private const val MAX_LOG_LINES = 500
     }

@@ -1,1 +1,2 @@
 -keep class com.f1ndle.tgwsproxy.NativeProxy { *; }
+-keep class io.github.valnesfjord.tgwsproxyrs.NativeProxy { *; }

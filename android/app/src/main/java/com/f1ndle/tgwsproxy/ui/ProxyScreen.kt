@@ -189,10 +189,6 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
     val showLogsSheet by viewModel.showLogsSheet.collectAsStateWithLifecycle()
     val showDomainDialog by viewModel.showDomainDialog.collectAsStateWithLifecycle()
     val showThemeDialog by viewModel.showThemeDialog.collectAsStateWithLifecycle()
-    val updateInfo by viewModel.updateInfo.collectAsStateWithLifecycle()
-    val isCheckingUpdate by viewModel.isCheckingUpdate.collectAsStateWithLifecycle()
-    val updateMessage by viewModel.updateMessage.collectAsStateWithLifecycle()
-    val showUpdateDialog by viewModel.showUpdateDialog.collectAsStateWithLifecycle()
 
     val scrollState = rememberScrollState()
 
@@ -206,13 +202,6 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         Icon(
                             painter = painterResource(R.drawable.ic_telegram),
                             contentDescription = stringResource(R.string.view_telegram_channel),
-                            tint = colors.textSecondary,
-                        )
-                    }
-                    IconButton(onClick = viewModel::openRepo) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.ic_github),
-                            contentDescription = stringResource(R.string.view_on_github),
                             tint = colors.textSecondary,
                         )
                     }
@@ -253,59 +242,6 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                         fontSize = 14.sp,
                     ),
                 )
-            }
-
-            // OTA Update Available Banner
-            if (updateInfo != null) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
-                        .clickable { viewModel.checkForUpdates(manual = true) },
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = colors.updateBannerBackground),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.update_available, updateInfo?.versionName.orEmpty()),
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = colors.accent,
-                                    fontSize = 15.sp,
-                                ),
-                            )
-                            Spacer(Modifier.height(2.dp))
-                            Text(
-                                text = stringResource(R.string.update_dialog_title, updateInfo?.versionName.orEmpty()),
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = colors.textSecondary,
-                                    fontSize = 12.sp,
-                                ),
-                            )
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        Button(
-                            onClick = { viewModel.checkForUpdates(manual = true) },
-                            colors = ButtonDefaults.buttonColors(containerColor = colors.accent),
-                            shape = RoundedCornerShape(12.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.update_now),
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                ),
-                            )
-                        }
-                    }
-                }
             }
 
             // Status Card
@@ -592,27 +528,6 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                             subtitle = stringResource(R.string.setting_telegram_channel_desc),
                             onClick = viewModel::openTelegramChannel,
                         )
-
-                        // GitHub Repo Row
-                        SettingClickableItem(
-                            title = stringResource(R.string.setting_github_repo),
-                            subtitle = stringResource(R.string.setting_github_repo_desc),
-                            onClick = viewModel::openRepo,
-                        )
-
-                        // Check Updates Row
-                        val updateSubtitle = when {
-                            isCheckingUpdate -> stringResource(R.string.checking_updates)
-                            updateMessage != null -> updateMessage!!
-                            updateInfo != null -> stringResource(R.string.update_available, updateInfo?.versionName.orEmpty())
-                            else -> "Версия v${viewModel.currentVersion} • Нажмите для проверки"
-                        }
-
-                        SettingClickableItem(
-                            title = stringResource(R.string.setting_check_updates),
-                            subtitle = updateSubtitle,
-                            onClick = { viewModel.checkForUpdates(manual = true) },
-                        )
                     }
                 }
             }
@@ -797,65 +712,6 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                 }
             }
         }
-    }
-
-    // Update Dialog
-    if (showUpdateDialog && updateInfo != null) {
-        val info = updateInfo!!
-        AlertDialog(
-            onDismissRequest = viewModel::dismissUpdateDialog,
-            containerColor = colors.surface,
-            title = {
-                Text(
-                    text = stringResource(R.string.update_dialog_title, info.versionName),
-                    color = colors.textPrimary,
-                    fontWeight = FontWeight.Bold,
-                )
-            },
-            text = {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                ) {
-                    if (info.changelog.isNotBlank()) {
-                        Text(
-                            text = stringResource(R.string.changelog_title),
-                            color = colors.textSecondary,
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = info.changelog,
-                            color = colors.textPrimary,
-                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
-                        )
-                    } else {
-                        Text(
-                            text = info.title,
-                            color = colors.textPrimary,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.openUpdateUrl()
-                        viewModel.dismissUpdateDialog()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent),
-                ) {
-                    Text(stringResource(R.string.update_now), color = Color.White)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissUpdateDialog) {
-                    Text(stringResource(R.string.update_later), color = colors.textSecondary)
-                }
-            },
-        )
     }
 }
 

@@ -1,31 +1,32 @@
 package com.f1ndle.tgwsproxy
 
 /**
- * JNI boundary proxying to [io.github.valnesfjord.tgwsproxyrs.NativeProxy]
- * matching the symbols in prebuilt libtg_ws_proxy_jni.so.
+ * JNI boundary for `crates/android-jni/src/android.rs`.
+ *
+ * The native side calls [onNativeLog], [onNativeListening], [onNativeError]
+ * and [onNativeStopped] on whichever thread the Tokio runtime happens to be
+ * on; [ProxyBridge] hops to the main thread for UI observers.
  */
 object NativeProxy {
+    init {
+        System.loadLibrary("tg_ws_proxy_jni")
+    }
+
     fun load() {
-        io.github.valnesfjord.tgwsproxyrs.NativeProxy.load()
+        // Touch the object so `init` runs from Application.onCreate.
     }
 
     @JvmStatic
-    fun nativeStart(args: String): String? =
-        io.github.valnesfjord.tgwsproxyrs.NativeProxy.nativeStart(args)
+    external fun nativeStart(args: String): String?
 
     @JvmStatic
-    fun nativeStop() {
-        io.github.valnesfjord.tgwsproxyrs.NativeProxy.nativeStop()
-    }
+    external fun nativeStop()
 
     @JvmStatic
-    fun nativeIsRunning(): Boolean =
-        io.github.valnesfjord.tgwsproxyrs.NativeProxy.nativeIsRunning()
+    external fun nativeIsRunning(): Boolean
 
     @JvmStatic
-    fun nativeTrimMemory() {
-        System.gc()
-    }
+    external fun nativeTrimMemory()
 
     @JvmStatic
     fun onNativeLog(line: String) {
@@ -47,3 +48,4 @@ object NativeProxy {
         ProxyBridge.setRunning(false)
     }
 }
+

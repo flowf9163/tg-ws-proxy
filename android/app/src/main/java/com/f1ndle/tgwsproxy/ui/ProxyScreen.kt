@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -34,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -66,6 +68,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -189,6 +192,7 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
     val showLogsSheet by viewModel.showLogsSheet.collectAsStateWithLifecycle()
     val showDomainDialog by viewModel.showDomainDialog.collectAsStateWithLifecycle()
     val showThemeDialog by viewModel.showThemeDialog.collectAsStateWithLifecycle()
+    val showPortDialog by viewModel.showPortDialog.collectAsStateWithLifecycle()
 
     val scrollState = rememberScrollState()
 
@@ -468,6 +472,17 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
                             onClick = { viewModel.setShowDomainDialog(true) },
                         )
 
+                        // Port Selection Row
+                        SettingClickableItem(
+                            title = stringResource(R.string.setting_port_title),
+                            subtitle = if (config.port == 1443) {
+                                "${config.port} (по умолчанию)"
+                            } else {
+                                "${config.port}"
+                            },
+                            onClick = { viewModel.setShowPortDialog(true) },
+                        )
+
                         // Logs Viewer Row
                         SettingClickableItem(
                             title = stringResource(R.string.setting_logs_title),
@@ -579,6 +594,79 @@ fun ProxyScreen(viewModel: ProxyViewModel) {
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.setShowDomainDialog(false) }) {
+                    Text(stringResource(R.string.cancel), color = colors.textSecondary)
+                }
+            },
+        )
+    }
+
+    // Port Selection Dialog
+    if (showPortDialog) {
+        var portInput by remember { mutableStateOf(config.port.toString()) }
+        val parsedPort = portInput.trim().toIntOrNull()
+        val isValidPort = parsedPort != null && parsedPort in 1..65535
+        AlertDialog(
+            onDismissRequest = { viewModel.setShowPortDialog(false) },
+            containerColor = colors.surface,
+            title = {
+                Text(
+                    text = stringResource(R.string.setting_port_dialog_title),
+                    color = colors.textPrimary,
+                    fontWeight = FontWeight.Bold,
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.port_dialog_hint),
+                        color = colors.textSecondary,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = portInput,
+                        onValueChange = { if (it.all { ch -> ch.isDigit() } && it.length <= 5) portInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        isError = portInput.isNotBlank() && !isValidPort,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        placeholder = { Text("1443", color = colors.textMuted) },
+                    )
+                    if (portInput.isNotBlank() && !isValidPort) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.port_invalid_error),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedButton(
+                        onClick = { portInput = "1443" },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.port_default_chip),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.updatePort(parsedPort ?: 1443)
+                        viewModel.setShowPortDialog(false)
+                    },
+                    enabled = isValidPort,
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent),
+                ) {
+                    Text(stringResource(R.string.save), color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.setShowPortDialog(false) }) {
                     Text(stringResource(R.string.cancel), color = colors.textSecondary)
                 }
             },

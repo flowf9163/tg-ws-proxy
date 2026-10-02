@@ -32,6 +32,13 @@
     <string name="theme_light">Светлая</string>
     <string name="theme_dialog_title">Тема оформления</string>
 
+    <string name="setting_port_title">Порт подключения</string>
+    <string name="setting_port_dialog_title">Порт прокси</string>
+    <string name="port_dialog_hint">Укажите локальный порт прокси (1–65535):</string>
+    <string name="port_default_chip">1443 (по умолчанию)</string>
+    <string name="port_invalid_error">Введите корректный порт от 1 до 65535</string>
+    <string name="port_changed_restart_hint">Порт изменён. Перезапустите прокси для применения</string>
+
     <string name="section_community">СООБЩЕСТВО</string>
     <string name="setting_telegram_channel">Telegram-канал</string>
     <string name="setting_telegram_channel_desc">@F1NDLE_cn — новости и обновления</string>

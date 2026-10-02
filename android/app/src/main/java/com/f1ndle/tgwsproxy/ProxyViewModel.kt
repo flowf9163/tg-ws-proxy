@@ -35,6 +35,9 @@ class ProxyViewModel(application: Application) : AndroidViewModel(application) {
     private val _showThemeDialog = MutableStateFlow(false)
     val showThemeDialog: StateFlow<Boolean> = _showThemeDialog.asStateFlow()
 
+    private val _showPortDialog = MutableStateFlow(false)
+    val showPortDialog: StateFlow<Boolean> = _showPortDialog.asStateFlow()
+
     init {
         ProxyBridge.syncFromNative()
         viewModelScope.launch {
@@ -91,7 +94,12 @@ class ProxyViewModel(application: Application) : AndroidViewModel(application) {
     fun updateCfBalance(enabled: Boolean) = repository.updateCfBalance(enabled)
     fun updateDefaultDomains(enabled: Boolean) = repository.updateDefaultDomains(enabled)
     fun updateCustomDomain(domain: String) = repository.updateCustomDomain(domain)
-    fun updatePort(port: Int) = repository.updatePort(port)
+    fun updatePort(port: Int) {
+        repository.updatePort(port)
+        if (running.value) {
+            ProxyBridge.reportMessage(getApplication<Application>().getString(R.string.port_changed_restart_hint))
+        }
+    }
     fun updateQuiet(quiet: Boolean) = repository.updateQuiet(quiet)
     fun updateThemeMode(mode: String) = repository.updateThemeMode(mode)
 
@@ -105,6 +113,10 @@ class ProxyViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setShowThemeDialog(show: Boolean) {
         _showThemeDialog.value = show
+    }
+
+    fun setShowPortDialog(show: Boolean) {
+        _showPortDialog.value = show
     }
 
     fun clearLogs() {
